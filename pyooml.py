@@ -149,6 +149,10 @@ class union(part):
     def is_union(self):
         return True
 
+class orientate(part):
+    """Orientate operator"""
+    pass
+
 
 class minkowski(part):
     """Minkowski operator"""
@@ -227,7 +231,30 @@ class cube(part):
         cad += self.cmd + "\n"
         return cad
         
-    
+
+class sphere(part):
+    """A sphere"""
+    def __init__(self, r, res=40):
+        
+        #-- Call the parent calls constructor first
+        super(sphere, self).__init__()
+        
+        self.res = res
+        self.r = r
+        self.size = [2*r, 2*r, 2*r]
+        self.cmd = "sphere({0}, $fn={1});".format(self.r, self.res)
+
+    def id(self):
+        print "//-- {}".format(self.cmd)
+
+    def scad_gen(self, indent=0):
+        """Create the openscad commands for this object"""
+        
+        #-- Call the super-calls scad_gen method
+        cad = super(sphere, self).scad_gen(indent)
+        
+        cad += self.cmd + "\n"
+        return cad
         
 class bcube(part):
     """Beveled cube"""
@@ -322,6 +349,9 @@ class vectorz(part):
         #-- Vector mark (optional)
         mark = cube([2, 0.3, self.l_arrow*0.8]).translate([1, 0, self.l_arrow*0.8/2. + lb/2.])
         
+        #-- Add a sphere in the base (application point)
+        base = sphere(r=1/2., res=20)
+        
         #-- Build the vector
         vec = head + body
         
@@ -329,7 +359,7 @@ class vectorz(part):
         if self.mark:
             vec += mark
         
-        return vec.translate([0, 0, lb/2.])
+        return vec.translate([0, 0, lb/2.]) + base
         
     def scad_gen(self, indent=0):
         #-- Call the super-calls scad_gen method
