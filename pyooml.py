@@ -21,6 +21,9 @@ class part():
     def translate(self, pos):
         return translate(self, pos)
 
+    def rotate(self, rot):
+        return rotate(self, rot)
+        
     # overload +
     def __add__(self, other):
         return union([self, other])
@@ -56,6 +59,20 @@ class translate(part):
         cad = " " * indent + "{}\n".format(self.cmd) + self.child.scad_gen(indent + 2)
         return cad
 
+class rotate(part):
+    """A rotated part"""
+    def __init__(self, part, rot):
+        self.rot = rot
+        self.child = part
+        self.cmd = "rotate({})".format(self.rot)
+
+    def id(self):
+        print "//-- {}".format(self.cmd)
+
+    def scad_gen(self, indent=0):
+        cad = " " * indent + "{}\n".format(self.cmd) + self.child.scad_gen(indent + 2)
+        return cad
+        
 
 class union(part):
     """A group of parts"""
