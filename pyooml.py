@@ -27,8 +27,8 @@ class part(object):
     def rotate(self, a, v):
         return rotate(self, a, v)
 
-    def orientate(self, v, vref=[0,0,1]):
-        return orientate(self, v, vref)
+    def orientate(self, v, vref=[0,0,1], roll=0):
+        return orientate(self, v, vref, roll)
         
     # overload +
     def __add__(self, other):
@@ -150,14 +150,15 @@ class union(part):
 class orientate(part):
     """Orientate operator"""
     
-    def __init__(self, part, v, vref=[0,0,1]):
+    def __init__(self, part, v, vref=[0,0,1], roll=0):
         #-- Call the parent calls constructor first
         super(orientate,self).__init__()
      
         self.vref = vref
         self.v = v
         self.child = part
-        self.cmd = "orientate(vref={0}, v={1})".format(self.vref, self.v)
+        self.roll=roll
+        self.cmd = "orientate(vref={0}, v={1}, roll={2})".format(self.vref, self.v, self.roll)
         
         #-- Rotation axis
         self.raxis = list(np.cross(vref,v))
@@ -179,7 +180,12 @@ class orientate(part):
         return cad 
 
     def _expr(self):
-        return part.rotate(self.child, a=self.ang, v=self.raxis)
+        
+        #-- rotate the part so that it points in the v direction
+        fig = part.rotate(self.child, a=self.ang, v=self.raxis)
+        
+        #-- Apply the roll and return
+        return fig.rotate(a=self.roll, v=self.v)
 
 
 class minkowski(part):
