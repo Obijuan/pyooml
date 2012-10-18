@@ -350,7 +350,7 @@ class vectorz(part):
     def __init__(self,l=10, l_arrow=4, mark=False):
         """
         l : vector length
-        l_arrow: Arroy length
+        l_arrow: Arrow length
         mark: Show a mark in the arrow, for showing the rotaing angle
         """
         #-- Call the parent calls constructor first
@@ -401,5 +401,43 @@ class vectorz(part):
         
         cad += self.expr.scad_gen(indent)
         return cad
+        
+class vector(part):
+    """Graphical vector"""
+    
+    def __init__(self, v, l_arrow=4, mark=False):
+        """
+        v : vector
+        l_arrow: Arrow lentgt
+        mark: Show a mark in the arrow
+        """
+        #-- Call the parent calls constructor first
+        super(vector, self).__init__()
+        
+        #-- calculate the vector module
+        self.l = np.linalg.norm(v)
+        self.v = list(v)
+        self.l_arrow = l_arrow
+        self.mark = mark
+        self.size = [1,1, self.l]
+        self.cmd = "vector(v={0}, l_arrow={1}, mark={2}".format(self.v, self.l_arrow, self.mark)
+        self.expr = self._expr()
+
+    def id(self):
+        print "//-- {}".format(self.cmd)  
+
+    def scad_gen(self, indent=0):
+        #-- Call the super-calls scad_gen method
+        cad = super(vector, self).scad_gen(indent)
+        
+        cad += self.expr.scad_gen(indent)
+        return cad
+    
+    def _expr(self):
+        """Build the object"""
+        
+        return vectorz(l=self.l, l_arrow=self.l_arrow, mark = self.mark).orientate(self.v) 
+        
+
         
         
