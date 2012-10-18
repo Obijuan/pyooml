@@ -174,14 +174,26 @@ class minkowski(part):
 
 
 class cylinder(part):
-    def __init__(self, r, h, res=20):
+    def __init__(self, h, r=0, r1=0, r2=0, res=20):
         #-- Call the parent calls constructor first
         super(cylinder,self).__init__()
         
-        self.r = r
-        self.h = h
-        self.size = [2*r, 2*r, h]
-        self.cmd = "cylinder(r={0},h={1},$fn={2},center=true);".format(r,h,res)
+        #-- Two kind of cylinder. Depending on the value of r
+        if r == 0:
+            self.r1 = r1
+            self.r2 = r2
+            self.r = 0
+            self.h = h
+            m = max([r1,r2])
+            self.size = [m, m, h]
+            self.cmd = "cylinder(r1={0}, r2={1}, h={2}, $fn={3},center=true);".format(r1,r2,h,res) 
+        else:        
+            self.r1 = r1
+            self.r2 = r2
+            self.r = r
+            self.h = h
+            self.size = [2*r, 2*r, h]
+            self.cmd = "cylinder(r={0},h={1},$fn={2},center=true);".format(r,h,res)
         
     def id(self):
         print "//-- {0}".format(self.cmd)
@@ -271,3 +283,59 @@ class bcube(part):
         cad += self.expr.scad_gen(indent)
         return cad
 
+class vectorz(part):
+    """Vector poiting in the z axis direction"""
+    
+    def __init__(self,l=10, l_arrow=4, mark=False):
+        """
+        l : vector length
+        l_arrow: Arroy length
+        mark: Show a mark in the arrow, for showing the rotaing angle
+        """
+        #-- Call the parent calls constructor first
+        super(vectorz, self).__init__()
+        
+        self.l = l
+        self.l_arrow = l_arrow
+        self.mark = mark
+        self.size = [1,1, l]
+        self.cmd = "vectorz(l={0}, l_arrow={1}, mark={2}".format(self.l, self.l_arrow, self.mark)
+        self.expr = self._expr()
+        
+    def id(self):
+        print "//-- {}".format(self.cmd)
+        
+    def _expr(self):
+        """Build the object"""
+        
+        
+        #-- Draw the vector body
+        #-- vector body length (not including the arrow)
+        lb = self.l - self.l_arrow;
+        
+        #-- the vector head
+        head = cylinder(r1=2/2, r2=0.2, h=self.l_arrow, res=20).translate([0,0,self.l_arrow/2+lb/2.])
+        
+        #-- Vector body
+        body = cylinder(r=1/2., h=lb, res=20)
+        
+        #-- Vector mark (optional)
+        mark = cube([2, 0.3, self.l_arrow*0.8]).translate([1, 0, self.l_arrow*0.8/2. + lb/2.])
+        
+        #-- Build the vector
+        vec = head + body
+        
+        #-- Add the optiona mark
+        if self.mark:
+            vec += mark
+        
+        return vec.translate([0, 0, lb/2.])
+        
+    def scad_gen(self, indent=0):
+        #-- Call the super-calls scad_gen method
+        cad = super(vectorz, self).scad_gen(indent)
+        
+        cad += self.expr.scad_gen(indent)
+        return cad
+        
+        
