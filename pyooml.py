@@ -8,6 +8,7 @@
 #-- GPL licence
 #-------------------------------------------------------------
 import numpy as np
+import utils
 
 
 class part(object):
@@ -23,19 +24,15 @@ class part(object):
     def translate(self, pos):
         return translate(self, pos)
 
-    def rotate(self, rot):
-        return rotate(self, rot)
+    def rotate(self, a, v):
+        return rotate(self, a, v)
+
+    def orientate(self, v, vref=[0,0,1]):
+        return orientate(self, v, vref)
         
     # overload +
     def __add__(self, other):
         return union([self, other])
-
-    def _modified_scad(self, indent=0):
-        if self.debug:
-            cad = "%" + self.scad_gen(indent)
-        else:
-            cad = self.scad_gen(indent)
-        return cad
         
     def scad_gen(self, indent=0):
         if self.debug:
@@ -84,13 +81,14 @@ class translate(part):
 
 class rotate(part):
     """A rotated part"""
-    def __init__(self, part, rot):
+    def __init__(self, part, a, axis):
         #-- Call the parent calls constructor first
         super(rotate,self).__init__()
         
-        self.rot = rot
+        self.ang = a
+        self.axis = axis
         self.child = part
-        self.cmd = "rotate({})".format(self.rot)
+        self.cmd = "rotate(a={0}, v={1})".format(self.ang, self.axis)
 
     def id(self):
         print "//-- {}".format(self.cmd)
@@ -151,7 +149,37 @@ class union(part):
 
 class orientate(part):
     """Orientate operator"""
-    pass
+    
+    def __init__(self, part, v, vref=[0,0,1]):
+        #-- Call the parent calls constructor first
+        super(orientate,self).__init__()
+     
+        self.vref = vref
+        self.v = v
+        self.child = part
+        self.cmd = "orientate(vref={0}, v={1})".format(self.vref, self.v)
+        
+        #-- Rotation axis
+        self.raxis = list(np.cross(vref,v))
+        
+        #-- Angle to rotate
+        self.ang = utils.anglev(vref,v)
+        
+        #-- Child expresion
+        self.expr = self._expr()
+        
+    def id(self):
+        print "//-- {}".format(self.cmd)  
+        
+    def scad_gen(self, indent=0):
+        #-- Call the super-calls scad_gen method
+        cad = super(orientate, self).scad_gen(indent)
+        
+        cad += self.expr.scad_gen(indent)
+        return cad 
+
+    def _expr(self):
+        return part.rotate(self.child, a=self.ang, v=self.raxis)
 
 
 class minkowski(part):

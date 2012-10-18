@@ -8,6 +8,7 @@ a = cube([50,10,10])
 b = cube([10,50,10])
 u =  a + b
 u2 = u + a
+u2.show()
 
 """
 a = cube([10,10,10]).translate([10,0,0])
