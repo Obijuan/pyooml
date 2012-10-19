@@ -30,6 +30,9 @@ class part(object):
     def orientate(self, v, vref=[0, 0, 1], roll=0):
         return orientate(self, v, vref, roll)
 
+    def color(self, c, alpha=1.0):
+        return color(self, c, alpha)
+    
     # overload +
     def __add__(self, other):
         return union([self, other])
@@ -101,7 +104,26 @@ class rotate(part):
         cad += format(self.cmd) + '\n' + self.child.scad_gen(indent + 2)
         return cad
 
+class color(part):
+    """Operator: add color"""
+    def __init__(self, part, c, alpha=1.0):
+        #-- Call the parent calls constructor first
+        super(color, self).__init__()
+        self.c = c
+        self.alpha = alpha
+        self.child = part
+        self.cmd = 'color("{0}",{1})'.format(c,alpha)
 
+    def id(self):
+        print "//-- {}".format(self.cmd)
+        
+    def scad_gen(self, indent=0):
+        #-- Call the super-calls scad_gen method
+        cad = super(color, self).scad_gen(indent)
+        
+        cad += format(self.cmd) + '\n' + self.child.scad_gen(indent + 2)
+        return cad
+        
 class union(part):
     """A group of parts"""
     def __init__(self, list_parts):
@@ -114,25 +136,25 @@ class union(part):
     def id(self):
         print "//-- {}".format(self.cmd)
 
-    def __add__(self, other):
+    #def __add__(self, other):
         #-- Optimizacion: if the second argument is an
         #-- Union too.. incorporate their childs into the
         #-- union list
 
         #-- Create list of child objects of the new union
         #-- (A copy of the current union)
-        lparts = [p for p in self.lparts]
+        #lparts = [p for p in self.lparts]
 
         #-- If the new object is a union, just added their childs
         #-- (not the union itself)
-        if other.is_union():
+        #if other.is_union():
             #-- Union + union
-            lparts.extend(other.lparts)
-        else:
+        #    lparts.extend(other.lparts)
+        #else:
             #-- Union + other part (not union)
-            lparts.extend([other])
+         #   lparts.extend([other])
 
-        return union(lparts)
+        #return union(lparts)
 
     def scad_gen(self, indent=0):
         #-- Call the super-calls scad_gen method
