@@ -482,3 +482,64 @@ class vector(part):
         return vectorz(l=self.l,
                        l_arrow=self.l_arrow,
                        mark = self.mark).orientate(self.v)
+
+
+class point(part):
+    """A point"""
+    def __init__(self, p, diam=2):
+        """A point"""
+        #-- Call the parent calls constructor first
+        super(point, self).__init__()
+        
+        self.p = list(p)
+        self.diam = 2
+        self.cmd = "point(p={0}, diam={1})".format(p,diam)
+        self.expr = self._expr()
+        
+    def id(self):
+        print "//-- {}".format(self.cmd)
+        
+    def scad_gen(self, indent=0):
+        #-- Call the super-calls scad_gen method
+        cad = super(point, self).scad_gen(indent)
+
+        cad += self.expr.scad_gen(indent)
+        return cad
+        
+    def _expr(self):
+        """Build the object"""  
+        return sphere(self.diam/2.).translate(self.p)
+        
+
+class connector(part):
+    """Graphical connector"""
+    def __init__(self, p, o):
+        """Arguments: p: connector position (vector)
+                      o: connector orientation (vector)
+        """
+        #-- Call the parent calls constructor first
+        super(connector, self).__init__()
+        
+        self.p = list(p)
+        self.o = list(o)
+        self.def_color = "gray"
+        self.l = 6 #-- default length
+        self.l_arrow = 2 #-- default arrow length
+        self.cmd = "connector(p={0}, o={1})".format(p,o)
+        self.expr = self._expr()
+        
+    def id(self):
+        print "//-- {}".format(self.cmd)
+
+    def scad_gen(self, indent=0):
+        #-- Call the super-calls scad_gen method
+        cad = super(connector, self).scad_gen(indent)
+
+        cad += self.expr.scad_gen(indent)
+        return cad
+        
+    def _expr(self):
+        
+        fig = vectorz(l=self.l, l_arrow=self.l_arrow).orientate(self.o).translate(self.p).color(self.def_color)
+        return fig
+                       
