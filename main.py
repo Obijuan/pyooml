@@ -44,6 +44,19 @@ def test_grid_1():
     c = cube([10, 10, 10])
     
     (c + g).show()
+
+def test_attach_1():
+    c = cube([30,20,30])
+    c.addconn([-15,0,5],[-1,0,0])
+    c.addconn([15,0,5],[1,0,0])
+
+    c2 = cube([10,50,10])
+    c2.addconn([5, 20,0],[-1,0,0])
+    c2.debug=True
+
+    c.attach(c2)
+    c.attach(c2,30)
+    c.show()
     
 #--- Main ----
 a = cube([50,10,10])
@@ -55,7 +68,10 @@ u2 = u + a
 #test_points()
 #test_connector_1()
 #test_frame_1()
-test_grid_1()
+#test_grid_1()
+test_attach_1()
+
+
 
 
 

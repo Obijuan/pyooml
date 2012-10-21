@@ -17,9 +17,19 @@ class part(object):
     def __init__(self):
         self.cmd = "(none)"
         self.debug = False
-        self.show_frame = True
-        self.show_conns = True
+        self.show_frame = False
+        self.show_conns = False
         
+        #-- List of connectors
+        self.lconns=[]
+        
+        #-- Parts connected through the conectors
+        self.conn_childs = []
+        
+    def addconn(self, p, o):
+        """Add a connector to the part"""
+        conn = (p, o)
+        self.lconns.append(conn)
 
     def id(self):
         print "//-- {}".format(self.cmd)
@@ -35,17 +45,63 @@ class part(object):
 
     def color(self, c, alpha=1.0):
         return color(self, c, alpha)
-    
+        
+    def attach(self, part, roll=0):
+        """Attach operator"""
+        
+        #-- The attached part should have free connectors
+        if len(part.lconns) == 0:
+            print "Error! Attached Part has no free connectors!"
+            return None
+            
+        #-- The main part should also have free connectors
+        if len(self.lconns) == 0:
+            print "Error! The main part has no free connectors!"
+            return None
+        
+        #-- Retrieve the next free connectors
+        p1,o1 = self.lconns.pop(0)
+        p2,o2 = part.lconns[0]
+        
+        t = list(-np.array(p2))
+        fig = part.translate(t)
+        fig = fig.orientate(v=o1, vref=o2)
+        fig = fig.rotate(a=roll, v=o1)
+        fig = fig.translate(p1)
+        
+        self.conn_childs.append(fig)
+        
+        return self
+
     # overload +
     def __add__(self, other):
         return union([self, other])
 
-    def scad_gen(self, indent=0):
+    def scad_gen(self, indent=0, cmd=""):
+        
+        #-- Initial string
+        cad = " " * indent
+        
+        #-- Add the debug mode
         if self.debug:
-            cad = "%"
-        else:
-            cad = ""
-        cad += " " * indent
+            cad += '%'
+            
+        #-- Add the object cmd
+        cad += cmd + '\n'
+        
+        #-- Add the Frame of reference
+        if self.show_frame:
+          cad += frame().scad_gen()
+        
+        #-- List of connectos
+        for conn in self.lconns:
+            p,o = conn  #-- Get the position and orientation vectors
+            cad += connector(p,o).scad_gen(indent+2)
+            
+        #-- Attached parts
+        for ap in self.conn_childs:
+            cad += ap.scad_gen(indent+2)
+        
         return cad
 
     #-- This method is used for optimizacion
@@ -82,7 +138,8 @@ class translate(part):
         #-- Call the super-calls scad_gen method
         cad = super(translate, self).scad_gen(indent)
 
-        cad += "{}\n".format(self.cmd) + self.child.scad_gen(indent + 2)
+        cad += "{} {{\n".format(self.cmd) + self.child.scad_gen(indent + 2) + "}"
+        
         return cad
 
 
@@ -104,7 +161,7 @@ class rotate(part):
         #-- Call the super-calls scad_gen method
         cad = super(rotate, self).scad_gen(indent)
 
-        cad += format(self.cmd) + '\n' + self.child.scad_gen(indent + 2)
+        cad += "{} {{\n".format(self.cmd) + '\n' + self.child.scad_gen(indent + 2) + "}"
         return cad
 
 class color(part):
@@ -193,6 +250,20 @@ class orientate(part):
 
         #-- Angle to rotate
         self.ang = utils.anglev(vref, v)
+        
+        #--Special case... If the rotation angle is 180...
+        #-- we should calculate a new rotation axis (because
+        #-- it will be 0,0,0, and it is not valid)
+        if self.ang == 180.0:
+            a,b,c = vref
+            if a != 0:
+                self.raxis = [-b/a, 1, 0]
+            elif b != 0:
+                self.raxis = [1, -a/b, 0]
+            elif c != 0:
+                self.raxis = [0, 1, -b/c]
+            else:
+                print "Error! Vref=(0,0,0)"
 
         #-- Child expresion
         self.expr = self._expr()
@@ -267,11 +338,9 @@ class cylinder(part):
         print "//-- {0}".format(self.cmd)
 
     def scad_gen(self, indent=0):
-        #-- Call the super-calls scad_gen method
-        cad = super(cylinder, self).scad_gen(indent)
-
-        cad += self.cmd + "\n"
-        return cad
+        """Create the openscad commands for this object"""
+        cad = self.cmd
+        return super(cylinder, self).scad_gen(indent, cad)
 
 
 class cube(part):
@@ -283,45 +352,14 @@ class cube(part):
 
         self.size = size
         self.cmd = "cube({},center=true);".format(self.size)
-        
-        #-- List of connectors
-        self.lconns=[]
-        
-    def addconn(self, p, o):
-        """Add a connector to the part"""
-        conn = (p, o)
-        self.lconns.append(conn)
-        
 
     def id(self):
         print "//-- {}".format(self.cmd)
 
     def scad_gen(self, indent=0):
         """Create the openscad commands for this object"""
-        
-        cad = " " * indent
-        
-        #-- Object preamble
-        cad = "union() {\n"
-        
-        #-- Object itself
-        if self.debug:
-            cad += '%'
-            
-        cad += self.cmd + "\n"
-        
-        #-- Frame of reference
-        #-- TODO
-        
-        #-- List of connectos
-        for conn in self.lconns:
-            p,o = conn  #-- Get the position and orientation vectors
-            cad += connector(p,o).scad_gen(indent+2)
-        
-        #-- Object epilogue
-        cad+="}\n"
-        
-        return cad
+        cad = self.cmd
+        return super(cube, self).scad_gen(indent, cad)
 
 
 class sphere(part):
