@@ -606,3 +606,34 @@ class frame(part):
         fig = x_axis + y_axis + z_axis + sphere(r=1).color("Gray")
         return fig
 
+class grid(part):
+    def __init__(self, size=[100, 100], step=10, width = 0.5):
+        #-- Call the parent calls constructor first
+        super(grid, self).__init__()
+        
+        self.gsize = size
+        self.step = step
+        self.width = width
+        self.cmd = "grid(size={0}, step={1}, width={2})".format(size,step,width)
+        self.expr = self._expr()
+        self.debug = False
+        
+    def id(self):
+        print "//-- {}".format(self.cmd)
+
+    def scad_gen(self, indent=0):
+        #-- Call the super-class scad_gen method
+        cad = super(grid, self).scad_gen(indent)
+
+        cad += self.expr.scad_gen(indent)
+        return cad
+        
+    def _expr(self):
+        linex = cube([self.gsize[0], self.width, self.width])
+        sx,sy = self.gsize
+        lx = [linex.translate([0,y,0]) for y in range(-sy/2, sy/2+self.step, self.step)]
+        lx = union(lx)
+        fig = (lx + lx.rotate(a=90, v=[0,0,1]))
+        return fig.color("Gray")
+        
+        

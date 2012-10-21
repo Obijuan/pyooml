@@ -30,9 +30,21 @@ def test_connector_1():
     #-- Show the cube and the connector
     (c + conn).show()
     
+def test_frame_1():
+    c = cube([10,10,10])
+    c.debug = True
+    f = frame(l=20)
+    
+    (f + c).show()
 
 
-
+def test_grid_1():
+    g = grid()
+    g.debug = True
+    c = cube([10, 10, 10])
+    
+    (c + g).show()
+    
 #--- Main ----
 a = cube([50,10,10])
 b = cube([10,50,10])
@@ -41,7 +53,9 @@ u2 = u + a
 #u2.show()
 
 #test_points()
-test_connector_1()
+#test_connector_1()
+#test_frame_1()
+test_grid_1()
 
 
 
