@@ -66,7 +66,11 @@ def test_relative_pos_1():
     p = point(c.top + c.right + c.back).color("Magenta")
     (c+p).show()
     
-    
+def test_difference_1():
+    c1 = cube([50,50,10])
+    c2 = cylinder(r=3, h=c1.size[2]+10)
+    (c1-c2).show()
+
 #--- Main ----
 a = cube([50,10,10])
 b = cube([10,50,10])
@@ -80,7 +84,7 @@ u2 = u + a
 #test_grid_1()
 #test_attach_1()
 #test_relative_pos_1()
-
+test_difference_1()
 
 
 

@@ -94,6 +94,10 @@ class part(object):
     def __add__(self, other):
         return union([self, other])
 
+    #-- Overload - operator
+    def __sub__(self, other):
+        return difference([self, other])
+    
     def scad_gen(self, indent=0, cmd=""):
         
         #-- Initial string
@@ -246,6 +250,28 @@ class union(part):
     def is_union(self):
         return True
 
+
+class difference(part):
+    """Difference operator"""
+    def __init__(self, list_parts):
+        #-- Call the parent calls constructor first
+        super(difference, self).__init__()
+
+        self.lparts = list_parts
+        self.cmd = "difference()"
+        
+    def id(self):
+        print "//-- {}".format(self.cmd)
+        
+    def scad_gen(self, indent=0):
+        #-- Call the super-calls scad_gen method
+        cad = super(difference, self).scad_gen(indent)
+
+        cad += "{0} {{\n".format(self.cmd)
+        childs_cad = [part.scad_gen(indent + 2) for part in self.lparts]
+        cad = cad + "".join(childs_cad)
+        cad = cad + " " * indent + "}\n"
+        return cad     
 
 class orientate(part):
     """Orientate operator"""
