@@ -57,6 +57,15 @@ def test_attach_1():
     c.attach(c2)
     c.attach(c2,30)
     c.show()
+
+
+def test_relative_pos_1():
+    c = cube([50,30,50])
+    c.debug = True
+    c.show_frame=True
+    p = point(c.top + c.right + c.back).color("Magenta")
+    (c+p).show()
+    
     
 #--- Main ----
 a = cube([50,10,10])
@@ -69,8 +78,8 @@ u2 = u + a
 #test_connector_1()
 #test_frame_1()
 #test_grid_1()
-test_attach_1()
-
+#test_attach_1()
+#test_relative_pos_1()
 
 
 

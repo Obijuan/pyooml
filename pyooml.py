@@ -14,8 +14,7 @@ import utils
 class part(object):
     """Class for defining an object. This class is virtual"""
 
-    def __init__(self):
-        self.cmd = "(none)"
+    def __init__(self, size=[0,0,0]):
         self.debug = False
         self.show_frame = False
         self.show_conns = False
@@ -25,6 +24,24 @@ class part(object):
         
         #-- Parts connected through the conectors
         self.conn_childs = []
+        
+        #-- Unit vectors of the local frame
+        self.uvx = np.array([1,0,0])
+        self.uvy = np.array([0,1,0])
+        self.uvz = np.array([0,0,1])
+        
+        #-- Object size (bounding box)
+        self.size = size
+        
+        self.top = np.array([0, 0, self.size[2]/2.])
+        self.bottom = np.array([0, 0, -self.size[2]/2.])
+        
+        self.right = np.array([self.size[0]/2., 0, 0])
+        self.left = np.array([-self.size[0]/2., 0, 0])
+        
+        self.back = np.array([0,self.size[1]/2., 0])
+        self.front = np.array([0,-self.size[1]/2., 0])
+        
         
     def addconn(self, p, o):
         """Add a connector to the part"""
@@ -129,7 +146,7 @@ class translate(part):
 
         self.pos = pos
         self.child = part
-        self.cmd = "translate({})".format(self.pos)
+        self.cmd = "translate({})".format(list(self.pos))
 
     def id(self):
         print "//-- {}".format(self.cmd)
@@ -312,9 +329,7 @@ class minkowski(part):
 
 class cylinder(part):
     def __init__(self, h, r=0, r1=0, r2=0, res=20):
-        #-- Call the parent calls constructor first
-        super(cylinder, self).__init__()
-
+        
         #-- Two kind of cylinder. Depending on the value of r
         if r == 0:
             self.r1 = r1
@@ -333,6 +348,9 @@ class cylinder(part):
             self.size = [2 * r, 2 * r, h]
             self.cmd = (
             "cylinder(r={0}, h={1}, $fn={2},center=true);".format(r, h, res))
+            
+        #-- Call the parent calls constructor
+        super(cylinder, self).__init__(size=self.size)
 
     def id(self):
         print "//-- {0}".format(self.cmd)
@@ -348,9 +366,8 @@ class cube(part):
     def __init__(self, size):
 
         #-- Call the parent calls constructor first
-        super(cube, self).__init__()
+        super(cube, self).__init__(size)
 
-        self.size = size
         self.cmd = "cube({},center=true);".format(self.size)
 
     def id(self):
@@ -392,14 +409,14 @@ class bcube(part):
 
     def __init__(self, size, cr = 2, cres = 5):
 
-        #-- Call the parent calls constructor first
-        super(bcube, self).__init__()
-
         #-- Initialize the object
-        self.size = size
         self.cr = cr
         self.cres = cres
-        self.cmd = "bcube({0},cr={1}, cres={2});".format(self.size, self.cr, self.cres)
+        self.cmd = "bcube({0},cr={1}, cres={2});".format(size, cr, cres)
+        
+        #-- Call the parent calls constructor
+        super(bcube, self).__init__(size)
+        
         self.expr = self._expr()
 
     def id(self):
