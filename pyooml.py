@@ -17,6 +17,9 @@ class part(object):
     def __init__(self):
         self.cmd = "(none)"
         self.debug = False
+        self.show_frame = True
+        self.show_conns = True
+        
 
     def id(self):
         print "//-- {}".format(self.cmd)
@@ -280,17 +283,44 @@ class cube(part):
 
         self.size = size
         self.cmd = "cube({},center=true);".format(self.size)
+        
+        #-- List of connectors
+        self.lconns=[]
+        
+    def addconn(self, p, o):
+        """Add a connector to the part"""
+        conn = (p, o)
+        self.lconns.append(conn)
+        
 
     def id(self):
         print "//-- {}".format(self.cmd)
 
     def scad_gen(self, indent=0):
         """Create the openscad commands for this object"""
-
-        #-- Call the super-calls scad_gen method
-        cad = super(cube, self).scad_gen(indent)
-
+        
+        cad = " " * indent
+        
+        #-- Object preamble
+        cad = "union() {\n"
+        
+        #-- Object itself
+        if self.debug:
+            cad += '%'
+            
         cad += self.cmd + "\n"
+        
+        #-- Frame of reference
+        #-- TODO
+        
+        #-- List of connectos
+        for conn in self.lconns:
+            p,o = conn  #-- Get the position and orientation vectors
+            cad += connector(p,o).scad_gen(indent+2)
+        
+        #-- Object epilogue
+        cad+="}\n"
+        
         return cad
 
 
@@ -367,7 +397,7 @@ class bcube(part):
         #-- Return the part created
         obj = minkowski([cyl,
               cube([sx, sy, sz / 2.])]).translate([-sx / 2., -sy / 2., 0])
-        return
+        return obj
 
     def scad_gen(self, indent=0):
         #-- Call the super-calls scad_gen method
@@ -540,6 +570,39 @@ class connector(part):
         
     def _expr(self):
         
-        fig = vectorz(l=self.l, l_arrow=self.l_arrow).orientate(self.o).translate(self.p).color(self.def_color)
+        p = point(self.p)
+        vec = vectorz(l=self.l, l_arrow=self.l_arrow).orientate(self.o)
+        
+        conn = (vec.translate(self.p) + p).color(self.def_color)
+
+        return conn
+
+
+class frame(part):
+    def __init__(self, l=10, l_arrow=4):
+        #-- Call the parent calls constructor first
+        super(frame, self).__init__()
+        
+        self.l = l
+        self.l_arrow = l_arrow
+        
+        self.cmd = "frame(l={0}, l_arrow={1})".format(l, l_arrow)
+        self.expr = self._expr()
+        
+    def id(self):
+        print "//-- {}".format(self.cmd)
+
+    def scad_gen(self, indent=0):
+        #-- Call the super-class scad_gen method
+        cad = super(frame, self).scad_gen(indent)
+
+        cad += self.expr.scad_gen(indent)
+        return cad
+        
+    def _expr(self):
+        z_axis = vector([0, 0, self.l], l_arrow=self.l_arrow).color("Blue")
+        x_axis = vector([self.l, 0, 0], l_arrow=self.l_arrow).color("Red")
+        y_axis = vector([0, self.l, 0], l_arrow=self.l_arrow).color("Green")
+        fig = x_axis + y_axis + z_axis + sphere(r=1).color("Gray")
         return fig
-                       
+

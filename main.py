@@ -17,7 +17,22 @@ def test_points():
     #-- Show
     fig.show()
     
+def test_connector_1():
     
+    #-- A cube
+    size = [10,10,10]
+    c = bcube(size)
+    
+    #-- Create a connector (on the top of the cube)
+    conn = connector([0,0,size[2]/2.], [0,0,1])
+    conn.debug = True
+    
+    #-- Show the cube and the connector
+    (c + conn).show()
+    
+
+
+
 #--- Main ----
 a = cube([50,10,10])
 b = cube([10,50,10])
@@ -25,7 +40,10 @@ u =  a + b
 u2 = u + a
 #u2.show()
 
-test_points()
+#test_points()
+test_connector_1()
+
+
 
 """
 a = cube([10,10,10]).translate([10,0,0])
