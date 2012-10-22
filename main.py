@@ -71,6 +71,40 @@ def test_difference_1():
     c2 = cylinder(r=3, h=c1.size[2]+10)
     (c1-c2).show()
 
+def servo_ring(servo):
+    
+    thick_z = 4
+    thick_xy = 10
+    tolerance = 0.2
+    
+    #-- Get the servo body dimensions
+    sx, sy, sz = servo.body_size + np.array([tolerance, tolerance, 0])
+    
+    #-- Cutout: servo body + tolerance
+    cutout = bcube([sx, sy, sz],cr = servo.body_cr, cres = servo.body_cres)
+    
+    #-- Add the tolerance to the 
+    
+    obj = bcube([sx + thick_xy + 2*tolerance, sy + thick_xy + 2*tolerance, thick_z])
+    
+    return (obj - cutout)
+
+def test_servo_ring_1():
+    
+    #-- Create a "ring" part for the first servo
+    s1 = Futaba3003()
+    sr1 = servo_ring(s1)
+
+    #-- Create a "ring" for another servo
+    s2 = TowerProSG90()
+    sr2 = servo_ring(s2)
+
+    #-- Show the objetcs (servos + rings)
+    obj1 = (sr1 + s1).translate([0, 30, 0])
+    obj2 = (sr2 + s2).translate([0, -30, 0])
+
+    (obj1 + obj2).show()
+
 #--- Main ----
 a = cube([50,10,10])
 b = cube([10,50,10])
@@ -84,9 +118,9 @@ u2 = u + a
 #test_grid_1()
 #test_attach_1()
 #test_relative_pos_1()
-test_difference_1()
+#test_difference_1()
 
-
+test_servo_ring_1()
 
 """
 a = cube([10,10,10]).translate([10,0,0])

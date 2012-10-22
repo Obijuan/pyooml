@@ -188,12 +188,19 @@ class rotate(part):
 class color(part):
     """Operator: add color"""
     def __init__(self, part, c, alpha=1.0):
+        #-- The color can be give either by a str or by a vector (R,G,B)
+
         #-- Call the parent calls constructor first
         super(color, self).__init__()
-        self.c = c
+        
+        #-- The colo
+        if type(c) == 'str':
+            self.c = '"{0}"'.format(c)
+        else:
+            self.c = list(c)
         self.alpha = alpha
         self.child = part
-        self.cmd = 'color("{0}",{1})'.format(c,alpha)
+        self.cmd = 'color({0},{1})'.format(self.c,alpha)
 
     def id(self):
         print "//-- {}".format(self.cmd)
@@ -717,4 +724,74 @@ class grid(part):
         fig = (lx + lx.rotate(a=90, v=[0,0,1]))
         return fig.color("Gray")
         
+class Futaba3003(part):
+    def __init__(self):
+        #-- Initialize the object
+        self.cmd = "Futaba3003()"
+        
+        #-- Servo body size
+        self.body_size = [40.8, 20., 36.2]
+        self.body_cr = 1
+        self.body_cres = 5
+        
+        #-- Servo ears
+        self.ear_size = [7.8, 18., 2.5]
+       
+        #-- Call the parent calls constructor
+        super(Futaba3003, self).__init__()
+        
+        self.expr = self._expr()
+        
+        
+    def id(self):
+        print "//-- {}".format(self.cmd)
+
+    def _expr(self):
+        #-- Draw the servo
+        
+        bsx, bsy, bsz = self.body_size
+        esx, esy, esz = self.ear_size
+        
+        body = bcube(self.body_size, cr = self.body_cr, cres = self.body_cres)
+        ears = bcube([2*esx + bsx, esy, esz], cr=self.body_cr, cres=self.body_cres)
+        servo = body + ears
+        return body.color(np.array([1, 1, 1])*0.3)
+        
+    def scad_gen(self, indent=0):
+        #-- Call the super-calls scad_gen method
+        cad = super(Futaba3003, self).scad_gen(indent)
+
+        cad += self.expr.scad_gen(indent)
+        return cad
+
+class TowerProSG90(part):
+    def __init__(self):
+        #-- Initialize the object
+        self.cmd = "TowerProSG90()"
+        
+        #-- Servo body size
+        self.body_size = [23.2, 12.4, 22.8]
+        self.body_cr = 1
+        self.body_cres = 5
+        
+        #-- Call the parent calls constructor
+        super(TowerProSG90, self).__init__()
+        
+        self.expr = self._expr()
+
+
+    def id(self):
+        print "//-- {}".format(self.cmd)
+
+    def _expr(self):
+        #-- Draw the servo
+        obj = bcube(self.body_size, cr = self.body_cr, cres = self.body_cres)
+        return obj.color(np.array([0, 0, 1])*0.8)
+        
+    def scad_gen(self, indent=0):
+        #-- Call the super-calls scad_gen method
+        cad = super(TowerProSG90, self).scad_gen(indent)
+
+        cad += self.expr.scad_gen(indent)
+        return cad
         
