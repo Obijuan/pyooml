@@ -74,7 +74,7 @@ def test_difference_1():
 def servo_ring(servo):
     
     thick_z = 4
-    thick_xy = 10
+    thick_xy = servo.ear_size[0] + 4
     tolerance = 0.2
     
     #-- Get the servo body dimensions
@@ -85,9 +85,9 @@ def servo_ring(servo):
     
     #-- Add the tolerance to the 
     
-    obj = bcube([sx + thick_xy + 2*tolerance, sy + thick_xy + 2*tolerance, thick_z])
+    obj = bcube([sx + 2*thick_xy + 2*tolerance, sy + thick_xy + 2*tolerance, thick_z])
     
-    return (obj - cutout)
+    return (obj - cutout - servo.drills(dh=10)).translate([0,0,-thick_z/2 + servo.ear_hi_center])
 
 def test_servo_ring_1():
     
@@ -100,8 +100,8 @@ def test_servo_ring_1():
     sr2 = servo_ring(s2)
 
     #-- Show the objetcs (servos + rings)
-    obj1 = (sr1 + s1).translate([0, 30, 0])
-    obj2 = (sr2 + s2).translate([0, -30, 0])
+    obj1 = (sr1 + s1).translate([0, 30, s1.body_size[2]/2.])
+    obj2 = (sr2 + s2).translate([0, -30, s2.body_size[2]/2.0])
 
     (obj1 + obj2).show()
 
@@ -120,12 +120,12 @@ u2 = u + a
 #test_relative_pos_1()
 #test_difference_1()
 
-#test_servo_ring_1()
+test_servo_ring_1()
 
 s = Futaba3003()
 #s.debug=True
-
-s.show()
+s2 = TowerProSG90()
+#(s.translate([0, 50, 0]) + s2).show()
 
 
 """
