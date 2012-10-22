@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from pyooml import *
+import servos
 import math
 
 
@@ -92,11 +93,11 @@ def servo_ring(servo):
 def test_servo_ring_1():
     
     #-- Create a "ring" part for the first servo
-    s1 = Futaba3003()
+    s1 = servos.Futaba3003()
     sr1 = servo_ring(s1)
 
     #-- Create a "ring" for another servo
-    s2 = TowerProSG90()
+    s2 = servos.TowerProSG90()
     sr2 = servo_ring(s2)
 
     #-- Show the objetcs (servos + rings)
@@ -122,9 +123,9 @@ u2 = u + a
 
 test_servo_ring_1()
 
-s = Futaba3003()
+s1 = servos.Futaba3003()
 #s.debug=True
-s2 = TowerProSG90()
+s2 = servos.TowerProSG90()
 #(s.translate([0, 50, 0]) + s2).show()
 
 
