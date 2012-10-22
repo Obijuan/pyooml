@@ -120,7 +120,13 @@ u2 = u + a
 #test_relative_pos_1()
 #test_difference_1()
 
-test_servo_ring_1()
+#test_servo_ring_1()
+
+s = Futaba3003()
+#s.debug=True
+
+s.show()
+
 
 """
 a = cube([10,10,10]).translate([10,0,0])

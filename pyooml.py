@@ -10,6 +10,8 @@
 import numpy as np
 import utils
 
+Z = 2
+
 
 class part(object):
     """Class for defining an object. This class is virtual"""
@@ -45,7 +47,7 @@ class part(object):
         
     def addconn(self, p, o):
         """Add a connector to the part"""
-        conn = (p, o)
+        conn = (list(p), list(o))
         self.lconns.append(conn)
 
     def id(self):
@@ -106,9 +108,17 @@ class part(object):
         #-- Add the debug mode
         if self.debug:
             cad += '%'
-            
+        
+        cad += "union() {\n"
+        
         #-- Add the object cmd
         cad += cmd + '\n'
+        
+        #-- Attached parts
+        for ap in self.conn_childs:
+            cad += ap.scad_gen(indent+2)
+        
+        cad += "}\n"
         
         #-- Add the Frame of reference
         if self.show_frame:
@@ -118,10 +128,6 @@ class part(object):
         for conn in self.lconns:
             p,o = conn  #-- Get the position and orientation vectors
             cad += connector(p,o).scad_gen(indent+2)
-            
-        #-- Attached parts
-        for ap in self.conn_childs:
-            cad += ap.scad_gen(indent+2)
         
         return cad
 
@@ -156,12 +162,10 @@ class translate(part):
         print "//-- {}".format(self.cmd)
 
     def scad_gen(self, indent=0):
-        #-- Call the super-calls scad_gen method
-        cad = super(translate, self).scad_gen(indent)
 
-        cad += "{} {{\n".format(self.cmd) + self.child.scad_gen(indent + 2) + "}"
-        
-        return cad
+        cad = "{} {{\n".format(self.cmd) + self.child.scad_gen(indent + 2) + "}"
+        #-- Call the super-calls scad_gen method
+        return super(translate, self).scad_gen(indent,cad)
 
 
 class rotate(part):
@@ -179,11 +183,12 @@ class rotate(part):
         print "//-- {}".format(self.cmd)
 
     def scad_gen(self, indent=0):
-        #-- Call the super-calls scad_gen method
-        cad = super(rotate, self).scad_gen(indent)
 
-        cad += "{} {{\n".format(self.cmd) + '\n' + self.child.scad_gen(indent + 2) + "}"
-        return cad
+        cad = "{} {{\n".format(self.cmd) + '\n' + self.child.scad_gen(indent + 2) + "}"
+        
+        #-- Call the super-calls scad_gen method
+        return super(rotate, self).scad_gen(indent,cad)
+        
 
 class color(part):
     """Operator: add color"""
@@ -193,8 +198,8 @@ class color(part):
         #-- Call the parent calls constructor first
         super(color, self).__init__()
         
-        #-- The colo
-        if type(c) == 'str':
+        #-- The color
+        if isinstance(c, str):
             self.c = '"{0}"'.format(c)
         else:
             self.c = list(c)
@@ -206,11 +211,9 @@ class color(part):
         print "//-- {}".format(self.cmd)
         
     def scad_gen(self, indent=0):
+        cad = format(self.cmd) + '\n' + self.child.scad_gen(indent + 2)
         #-- Call the super-calls scad_gen method
-        cad = super(color, self).scad_gen(indent)
-        
-        cad += format(self.cmd) + '\n' + self.child.scad_gen(indent + 2)
-        return cad
+        return super(color, self).scad_gen(indent,cad)
         
 class union(part):
     """A group of parts"""
@@ -245,14 +248,14 @@ class union(part):
         #return union(lparts)
 
     def scad_gen(self, indent=0):
-        #-- Call the super-calls scad_gen method
-        cad = super(union, self).scad_gen(indent)
 
-        cad += "{0} {{\n".format(self.cmd)
+        cad = "{0} {{\n".format(self.cmd)
         childs_cad = [part.scad_gen(indent + 2) for part in self.lparts]
         cad = cad + "".join(childs_cad)
         cad = cad + " " * indent + "}\n"
-        return cad
+        
+        #-- Call the super-calls scad_gen method
+        return super(union, self).scad_gen(indent, cad)
 
     def is_union(self):
         return True
@@ -271,14 +274,16 @@ class difference(part):
         print "//-- {}".format(self.cmd)
         
     def scad_gen(self, indent=0):
-        #-- Call the super-calls scad_gen method
-        cad = super(difference, self).scad_gen(indent)
+        
 
-        cad += "{0} {{\n".format(self.cmd)
+        cad = "{0} {{\n".format(self.cmd)
         childs_cad = [part.scad_gen(indent + 2) for part in self.lparts]
         cad = cad + "".join(childs_cad)
         cad = cad + " " * indent + "}\n"
-        return cad     
+        
+        #-- Call the super-calls scad_gen method
+        return super(difference, self).scad_gen(indent,cad)
+            
 
 class orientate(part):
     """Orientate operator"""
@@ -322,11 +327,11 @@ class orientate(part):
         print "//-- {}".format(self.cmd)
 
     def scad_gen(self, indent=0):
+        
+        cad = self.expr.scad_gen(indent)
+        
         #-- Call the super-calls scad_gen method
-        cad = super(orientate, self).scad_gen(indent)
-
-        cad += self.expr.scad_gen(indent)
-        return cad
+        return super(orientate, self).scad_gen(indent, cad)
 
     def _expr(self):
 
@@ -429,12 +434,10 @@ class sphere(part):
 
     def scad_gen(self, indent=0):
         """Create the openscad commands for this object"""
-
-        #-- Call the super-calls scad_gen method
-        cad = super(sphere, self).scad_gen(indent)
-
-        cad += self.cmd + "\n"
-        return cad
+        
+        cad = self.cmd
+         #-- Call the super-calls scad_gen method
+        return super(sphere, self).scad_gen(indent,cad)
 
 
 class bcube(part):
@@ -488,12 +491,9 @@ class bcube(part):
         return obj
 
     def scad_gen(self, indent=0):
-        #-- Call the super-calls scad_gen method
-        cad = super(bcube, self).scad_gen(indent)
-
-        #-- do the particular stuff for this class
-        cad += self.expr.scad_gen(indent)
-        return cad
+        """Create the openscad commands for this object"""
+        cad = self.expr.scad_gen(indent)
+        return super(bcube, self).scad_gen(indent, cad)
 
 
 class vectorz(part):
@@ -554,11 +554,11 @@ class vectorz(part):
         return vec.translate([0, 0, lb / 2.]) + base
 
     def scad_gen(self, indent=0):
+        
+        cad = self.expr.scad_gen(indent)
+        
         #-- Call the super-calls scad_gen method
-        cad = super(vectorz, self).scad_gen(indent)
-
-        cad += self.expr.scad_gen(indent)
-        return cad
+        return super(vectorz, self).scad_gen(indent,cad)
 
 
 class vector(part):
@@ -588,11 +588,10 @@ class vector(part):
         print "//-- {}".format(self.cmd)
 
     def scad_gen(self, indent=0):
+        cad = self.expr.scad_gen(indent)
         #-- Call the super-calls scad_gen method
-        cad = super(vector, self).scad_gen(indent)
-
-        cad += self.expr.scad_gen(indent)
-        return cad
+        return super(vector, self).scad_gen(indent, cad)
+        
 
     def _expr(self):
         """Build the object"""
@@ -618,11 +617,10 @@ class point(part):
         print "//-- {}".format(self.cmd)
         
     def scad_gen(self, indent=0):
-        #-- Call the super-calls scad_gen method
-        cad = super(point, self).scad_gen(indent)
 
-        cad += self.expr.scad_gen(indent)
-        return cad
+        cad = self.expr.scad_gen(indent)
+        #-- Call the super-calls scad_gen method
+        return super(point, self).scad_gen(indent, cad)
         
     def _expr(self):
         """Build the object"""  
@@ -650,11 +648,12 @@ class connector(part):
         print "//-- {}".format(self.cmd)
 
     def scad_gen(self, indent=0):
-        #-- Call the super-calls scad_gen method
-        cad = super(connector, self).scad_gen(indent)
+        
 
-        cad += self.expr.scad_gen(indent)
-        return cad
+        cad = self.expr.scad_gen(indent)
+        
+        #-- Call the super-calls scad_gen method
+        return super(connector, self).scad_gen(indent,cad)
         
     def _expr(self):
         
@@ -681,11 +680,10 @@ class frame(part):
         print "//-- {}".format(self.cmd)
 
     def scad_gen(self, indent=0):
-        #-- Call the super-class scad_gen method
-        cad = super(frame, self).scad_gen(indent)
 
-        cad += self.expr.scad_gen(indent)
-        return cad
+        cad = self.expr.scad_gen(indent)
+        #-- Call the super-class scad_gen method
+        return super(frame, self).scad_gen(indent,cad)
         
     def _expr(self):
         z_axis = vector([0, 0, self.l], l_arrow=self.l_arrow).color("Blue")
@@ -725,17 +723,67 @@ class grid(part):
         return fig.color("Gray")
         
 class Futaba3003(part):
+    
+    #-- Servo body size
+    body_size = [40.8, 20., 36.2]
+    
+    #-- Servo ears
+    ear_size = [7.8, 18., 2.5]
+    
+    #-- Servo drills
+    drills_x_dist = 48.5  #-- x-distance between left and right drills
+    drills_y_dist = 9.6   #-- y distance between the front and rear drills
+  
+    dx = drills_x_dist/2. #-- Distance from the center to the drills
+    dy = drills_y_dist/2.
+  
+    #-- list of (x,y,z) coordinates for the drills
+    drills_pos = [
+      [dx,   dy, 0.],
+      [-dx,  dy, 0.],
+      [-dx, -dy, 0.],
+      [dx,  -dy, 0.]
+    ]
+    
+    drills_diam = 3
+    
     def __init__(self):
         #-- Initialize the object
         self.cmd = "Futaba3003()"
         
-        #-- Servo body size
-        self.body_size = [40.8, 20., 36.2]
         self.body_cr = 1
         self.body_cres = 5
         
-        #-- Servo ears
-        self.ear_size = [7.8, 18., 2.5]
+       
+        
+        #-- Distance from the servo bottom to the
+        #-- bottom of the ears (it can be measured with a caliper)
+        self.ear_hi = 27.
+        
+        #-- Shaft base
+        self.shaft_base_diam = 14.5
+        self.shaft_base_hi = 2.
+        
+        #-- Shaft
+        self.shaft_diam = 6
+        self.shaft_hi = 3.8
+        
+        #--- position
+        
+        #-- Distance from the right side servo body to the rigth side of shaft
+        #-- It can be meassured with a caliper
+        self.shaft_d = 7.3
+        
+        
+        #-- Calculate the shaft botom point
+        self.shaft_base_pos = np.array([self.body_size[0]/2. - self.shaft_d - self.shaft_diam/2.,
+                               0,
+                               self.body_size[2]/2.])
+        
+        #-- For building the servo what is really used is the
+        #-- distance from the servo center
+        self.ear_hi_center = self.ear_hi - self.body_size[2]/2.
+        
        
         #-- Call the parent calls constructor
         super(Futaba3003, self).__init__()
@@ -754,15 +802,40 @@ class Futaba3003(part):
         
         body = bcube(self.body_size, cr = self.body_cr, cres = self.body_cres)
         ears = bcube([2*esx + bsx, esy, esz], cr=self.body_cr, cres=self.body_cres)
-        servo = body + ears
-        return body.color(np.array([1, 1, 1])*0.3)
+        
+        #-- Translate the ears to their position
+        ears = ears.translate([0,0,self.ear_hi_center]-ears.bottom)
+        
+        base_shaft = cylinder(r=self.shaft_base_diam/2., h=self.shaft_base_hi)
+        base_shaft = base_shaft.translate(self.shaft_base_pos - base_shaft.bottom)
+        
+        shaft = cylinder(r=self.shaft_diam/2., h=self.shaft_hi)
+        shaft = shaft.translate(self.shaft_base_pos + [0, 0, self.shaft_base_hi] -
+                                shaft.bottom)
+        
+        drills = self.drills().translate([0,0,self.ear_hi_center+self.ear_size[Z]/2.])
+        
+        servo = shaft + body + (ears - drills) + base_shaft 
+
+        return servo.color(np.array([1, 1, 1])*0.4)
+
+    def drills(self, dh = ear_size[2]+1):
+        """Create the cylinder for making the servo drills
+        dh = drill height
+        """
+        
+        l = [cylinder(r = self.drills_diam / 2., h = dh).translate(p)
+             for p in self.drills_pos]
+        
+        obj = union(l)
+        
+        return obj
         
     def scad_gen(self, indent=0):
-        #-- Call the super-calls scad_gen method
-        cad = super(Futaba3003, self).scad_gen(indent)
 
-        cad += self.expr.scad_gen(indent)
-        return cad
+        cad = self.expr.scad_gen(indent)
+        #-- Call the super-calls scad_gen method
+        return super(Futaba3003, self).scad_gen(indent, cad)
 
 class TowerProSG90(part):
     def __init__(self):
@@ -789,9 +862,8 @@ class TowerProSG90(part):
         return obj.color(np.array([0, 0, 1])*0.8)
         
     def scad_gen(self, indent=0):
+        cad = self.expr.scad_gen(indent)
         #-- Call the super-calls scad_gen method
-        cad = super(TowerProSG90, self).scad_gen(indent)
-
-        cad += self.expr.scad_gen(indent)
-        return cad
+        return super(TowerProSG90, self).scad_gen(indent,cad)
+        
         
