@@ -388,55 +388,6 @@ class minkowski(part):
         return cad
 
 
-class cylinder(part):
-    def __init__(self, h, r=0, r1=0, r2=0, res=20):
-        
-        #-- Two kind of cylinder. Depending on the value of r
-        if r == 0:
-            self.r1 = r1
-            self.r2 = r2
-            self.r = 0
-            self.h = h
-            m = max([r1, r2])
-            self.size = [m, m, h]
-            cmd = "cylinder(r1={0}, r2={1},h={2}, $fn={3}, center=true);"
-            self.cmd = cmd.format(r1, r2, h, res)
-        else:
-            self.r1 = r1
-            self.r2 = r2
-            self.r = r
-            self.h = h
-            self.size = [2 * r, 2 * r, h]
-            self.cmd = (
-            "cylinder(r={0}, h={1}, $fn={2},center=true);".format(r, h, res))
-            
-        #-- Call the parent calls constructor
-        super(cylinder, self).__init__(size=self.size)
-
-    def scad_gen(self, indent=0):
-        """Create the openscad commands for this object"""
-        cad = self.cmd
-        return super(cylinder, self).scad_gen(indent, cad)
-
-class sphere(part):
-    """A sphere"""
-    def __init__(self, r, res=40):
-
-        #-- Call the parent calls constructor first
-        super(sphere, self).__init__()
-
-        self.res = res
-        self.r = r
-        self.size = [2 * r, 2 * r, 2 * r]
-        self.cmd = "sphere({0}, $fn={1});".format(self.r, self.res)
-
-    def scad_gen(self, indent=0):
-        """Create the openscad commands for this object"""
-        
-        cad = self.cmd
-         #-- Call the super-calls scad_gen method
-        return super(sphere, self).scad_gen(indent,cad)
-
 from primitive import *
 
 
@@ -525,7 +476,7 @@ class vectorz(part):
         lb = self.l - self.l_arrow
 
         #-- the vector head
-        head = cylinder(r1 = 2 / 2, r2 = 0.2,
+        head = cone(r1 = 2 / 2, r2 = 0.2,
                         h = self.l_arrow,
                         res = 20).translate([0, 0, self.l_arrow / 2 + lb / 2.])
 
