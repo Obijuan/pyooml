@@ -7,8 +7,11 @@
 #-------------------------------------------------------------
 #-- GPL licence
 #-------------------------------------------------------------
+
 import numpy as np
 import utils
+import transformations as trans
+
 
 Z = 2
 
@@ -16,7 +19,12 @@ Z = 2
 class part(object):
     """Class for defining an object. This class is virtual"""
 
-    def __init__(self, size=[0,0,0]):
+    def __init__(self, size=[0, 0, 0]):
+        
+        #-- Object transformation matrix
+        #-- It defines its position and orientation
+        self.T = trans.Identity()
+
         self.debug = False
         self.show_frame = False
         self.show_conns = False
@@ -51,8 +59,34 @@ class part(object):
         self.lconns.append(conn)
 
     def id(self):
-        print "//-- {}".format(self.cmd)
+        return  "//-- {}".format(self.cmd)
 
+    def Tras(self, vt):
+        """Translate function. It returns the same object
+        but translated a vetor vt"""
+        
+        #-- Make a copy of the object
+        obj = copy.deepcopy(self)
+        
+        #-- Calculate the new transformation matrix
+        obj.T = self.T.dot( trans.Tras(vt) )
+        
+        #-- Return the NEW object
+        return obj    
+
+    def Rot(self, a, v):
+        """Rotate function. It returns the same object
+        but Rotated an angle a around the axis given by v"""
+        
+        #-- Make a copy of the object
+        obj = copy.deepcopy(self)
+        
+        #-- Calculate the new transformation matrix
+        obj.T = self.T.dot( trans.Rot(a, v) )
+        
+        #-- Return the NEW object
+        return obj
+        
     def translate(self, pos):
         return translate(self, pos)
 
@@ -105,29 +139,33 @@ class part(object):
         #-- Initial string
         cad = " " * indent
         
+        
+        #-- Get the object matrix as a list
+        T = [list(v) for v in self.T]
+        
+        cad = self.id()+'\n'
+        cad += "multmatrix(m={0}) {{".format(T) 
+        
         #-- Add the debug mode
         if self.debug:
             cad += '%'
-        
-        cad += "union() {\n"
-        
-        #-- Add the object cmd
+            
         cad += cmd + '\n'
-        
-        #-- Attached parts
-        for ap in self.conn_childs:
-            cad += ap.scad_gen(indent+2)
-        
-        cad += "}\n"
         
         #-- Add the Frame of reference
         if self.show_frame:
-          cad += frame().scad_gen()
+          cad += frame().scad_gen() 
         
+        cad += "}\n"
+        
+        #-- Attached parts
+        #for ap in self.conn_childs:
+        #    cad += ap.scad_gen(indent+2)
+
         #-- List of connectos
-        for conn in self.lconns:
-            p,o = conn  #-- Get the position and orientation vectors
-            cad += connector(p,o).scad_gen(indent+2)
+        #for conn in self.lconns:
+        #    p,o = conn  #-- Get the position and orientation vectors
+        #    cad += connector(p,o).scad_gen(indent+2)
         
         return cad
 
@@ -158,9 +196,6 @@ class translate(part):
         self.child = part
         self.cmd = "translate({})".format(list(self.pos))
 
-    def id(self):
-        print "//-- {}".format(self.cmd)
-
     def scad_gen(self, indent=0):
 
         cad = "{} {{\n".format(self.cmd) + self.child.scad_gen(indent + 2) + "}"
@@ -178,9 +213,6 @@ class rotate(part):
         self.axis = axis
         self.child = part
         self.cmd = "rotate(a={0}, v={1})".format(self.ang, self.axis)
-
-    def id(self):
-        print "//-- {}".format(self.cmd)
 
     def scad_gen(self, indent=0):
 
@@ -206,9 +238,6 @@ class color(part):
         self.alpha = alpha
         self.child = part
         self.cmd = 'color({0},{1})'.format(self.c,alpha)
-
-    def id(self):
-        print "//-- {}".format(self.cmd)
         
     def scad_gen(self, indent=0):
         cad = format(self.cmd) + '\n' + self.child.scad_gen(indent + 2)
@@ -223,9 +252,6 @@ class union(part):
 
         self.lparts = list_parts
         self.cmd = "union()"
-
-    def id(self):
-        print "//-- {}".format(self.cmd)
 
     #def __add__(self, other):
         #-- Optimizacion: if the second argument is an
@@ -323,9 +349,6 @@ class orientate(part):
         #-- Child expresion
         self.expr = self._expr()
 
-    def id(self):
-        print "//-- {}".format(self.cmd)
-
     def scad_gen(self, indent=0):
         
         cad = self.expr.scad_gen(indent)
@@ -390,32 +413,10 @@ class cylinder(part):
         #-- Call the parent calls constructor
         super(cylinder, self).__init__(size=self.size)
 
-    def id(self):
-        print "//-- {0}".format(self.cmd)
-
     def scad_gen(self, indent=0):
         """Create the openscad commands for this object"""
         cad = self.cmd
         return super(cylinder, self).scad_gen(indent, cad)
-
-
-class cube(part):
-    """Primitive part: A cube"""
-    def __init__(self, size):
-
-        #-- Call the parent calls constructor first
-        super(cube, self).__init__(size)
-
-        self.cmd = "cube({},center=true);".format(self.size)
-
-    def id(self):
-        print "//-- {}".format(self.cmd)
-
-    def scad_gen(self, indent=0):
-        """Create the openscad commands for this object"""
-        cad = self.cmd
-        return super(cube, self).scad_gen(indent, cad)
-
 
 class sphere(part):
     """A sphere"""
@@ -429,15 +430,14 @@ class sphere(part):
         self.size = [2 * r, 2 * r, 2 * r]
         self.cmd = "sphere({0}, $fn={1});".format(self.r, self.res)
 
-    def id(self):
-        print "//-- {}".format(self.cmd)
-
     def scad_gen(self, indent=0):
         """Create the openscad commands for this object"""
         
         cad = self.cmd
          #-- Call the super-calls scad_gen method
         return super(sphere, self).scad_gen(indent,cad)
+
+from primitive import *
 
 
 class bcube(part):
@@ -517,9 +517,6 @@ class vectorz(part):
                                                       self.mark)
         self.expr = self._expr()
 
-    def id(self):
-        print "//-- {}".format(self.cmd)
-
     def _expr(self):
         """Build the object"""
 
@@ -583,9 +580,6 @@ class vector(part):
                                                      self.l_arrow,
                                                      self.mark)
         self.expr = self._expr()
-
-    def id(self):
-        print "//-- {}".format(self.cmd)
 
     def scad_gen(self, indent=0):
         cad = self.expr.scad_gen(indent)
@@ -675,9 +669,6 @@ class frame(part):
         
         self.cmd = "frame(l={0}, l_arrow={1})".format(l, l_arrow)
         self.expr = self._expr()
-        
-    def id(self):
-        print "//-- {}".format(self.cmd)
 
     def scad_gen(self, indent=0):
 

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from pyooml import *
+from primitive import *
 import servos
 import math
 
@@ -120,13 +121,14 @@ u2 = u + a
 #test_attach_1()
 #test_relative_pos_1()
 #test_difference_1()
+#test_servo_ring_1()
 
-test_servo_ring_1()
-
-s1 = servos.Futaba3003()
+#s1 = servos.Futaba3003()
 #s.debug=True
-s2 = servos.TowerProSG90()
+#s2 = servos.TowerProSG90()
 #(s.translate([0, 50, 0]) + s2).show()
+
+c = cube([10,10,10])
 
 
 """
