@@ -25,6 +25,16 @@ class part(object):
         #-- It defines its position and orientation
         self.T = trans.Identity()
 
+        #-- Use the default color
+        self.col = ""
+        
+        #-- Only if an empty string, the col_rgb
+        #-- will be used (the str format has priority over rgb)
+        self.col_rgb = [2, 2, 2]  #--- [2,2,2] means default color
+        
+        #-- Object alpha channel
+        self.alpha = 1.0
+        
         self.debug = False
         self.show_frame = False
         self.show_conns = False
@@ -96,9 +106,31 @@ class part(object):
     def orientate(self, v, vref=[0, 0, 1], roll=0):
         return orientate(self, v, vref, roll)
 
-    def color(self, c, alpha=1.0):
-        return color(self, c, alpha)
+    #def color(self, c, alpha=1.0):
+    #    return color(self, c, alpha)
+    
+    def color(self, c, alpha = 1.0):
+        """Create a copy of the object in a different color"""
         
+        #-- Determine how the user passes the arguments
+        #-- By string ("Blue", "Yellow"...) or by list (r,g,b)
+        if isinstance(c, str):
+            col = c            #-- is a string
+        else:
+            c = list(c)  #-- Otherwise it should be a list
+            col = ""
+            
+        #-- Make a copy of the object
+        obj = copy.deepcopy(self)
+        
+        #-- Change the color
+        obj.col = col
+        obj.c = c
+        obj.alpha = alpha
+        
+        #-- Return the new object
+        return obj
+
     def attach(self, part, roll=0):
         """Attach operator"""
         
@@ -149,14 +181,32 @@ class part(object):
         #-- Add the debug mode
         if self.debug:
             cad += '%'
+
             
-        cad += cmd + '\n'
+        #----- Color managment
+        if self.col == "" and self.col_rgb == [2, 2, 2]:
+            #-- No color
+            cad += cmd + '\n'
+            
+        else:
+            #-- Color given..
+            
+            #-- Get the color argument
+            if self.col == "":
+                color_arg = "{0}".format(list(self.col_rgb))
+            else:
+                color_arg = '"{0}"'.format(self.col)
+        
+            #-- Calculate the final color argument
+            color_cmd = 'color({0},{1})'.format(color_arg, self.alpha)
+            
+            cad += color_cmd + '{\n' + cmd + '\n}\n'
         
         #-- Add the Frame of reference
         if self.show_frame:
           cad += frame().scad_gen() 
-        
-        cad += "}\n"
+
+        cad += "}\n"  #-- Close the multimatrix bracket
         
         #-- Attached parts
         #for ap in self.conn_childs:
@@ -220,29 +270,7 @@ class rotate(part):
         
         #-- Call the super-calls scad_gen method
         return super(rotate, self).scad_gen(indent,cad)
-        
 
-class color(part):
-    """Operator: add color"""
-    def __init__(self, part, c, alpha=1.0):
-        #-- The color can be give either by a str or by a vector (R,G,B)
-
-        #-- Call the parent calls constructor first
-        super(color, self).__init__()
-        
-        #-- The color
-        if isinstance(c, str):
-            self.c = '"{0}"'.format(c)
-        else:
-            self.c = list(c)
-        self.alpha = alpha
-        self.child = part
-        self.cmd = 'color({0},{1})'.format(self.c,alpha)
-        
-    def scad_gen(self, indent=0):
-        cad = format(self.cmd) + '\n' + self.child.scad_gen(indent + 2)
-        #-- Call the super-calls scad_gen method
-        return super(color, self).scad_gen(indent,cad)
         
 class union(part):
     """A group of parts"""
