@@ -154,4 +154,44 @@ class bcube(combinational):
         
         return obj
 
+
+class point(combinational):
+    """A point"""
+    def __init__(self, p, diam=2):
+        """A point"""
         
+        self.p = p
+        self.diam = 2
+        self.size=[diam, diam, diam]
+        self.cmd = "point(p={0}, diam={1})".format(list(p),diam)
+        
+        #-- Call the parent clasa constructor first
+        super(point, self).__init__(self.size)
+        
+        
+    def _geometry(self):
+        """Build the object"""  
+        return sphere(self.diam/2.).Tras(self.p)
+        
+        
+class grid(combinational):
+    def __init__(self, gsize=[100, 100], step=10, width = 0.5):
+        
+        self.gsize = gsize
+        self.size = [gsize[0], gsize[1], width]
+        self.step = step
+        self.width = width
+        self.cmd = "grid(size={0}, step={1}, width={2})".format(gsize,step,width)
+        
+        #-- Call the parent calls constructor first
+        super(grid, self).__init__(self.size)
+        
+    def _geometry(self):
+        linex = cube([self.gsize[0], self.width, self.width])
+        sx,sy = self.gsize
+        lx = [linex.Tras([0,y,0]) for y in range(-sy/2, sy/2+self.step, self.step)]
+        lx = union(lx)
+        fig = (lx + lx.Rot(90, [0,0,1]))
+        return fig.color("Gray")
+
+
