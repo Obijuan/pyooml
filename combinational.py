@@ -103,7 +103,8 @@ class frame(combinational):
         fig = x_axis + y_axis + z_axis + sphere(r=1).color("Gray")
         return fig
 
-
+from operators import *
+        
 class bcube(combinational):
     """Beveled cube"""
 

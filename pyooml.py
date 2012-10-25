@@ -178,6 +178,10 @@ class part(object):
         cad = self.id()+'\n'
         cad += "multmatrix(m={0}) {{".format(T) 
         
+        #-- Add the Frame of reference
+        if self.show_frame:
+          cad += frame().scad_gen() 
+        
         #-- Add the debug mode
         if self.debug:
             cad += '%'
@@ -201,10 +205,6 @@ class part(object):
             color_cmd = 'color({0},{1})'.format(color_arg, self.alpha)
             
             cad += color_cmd + '{\n' + cmd + '\n}\n'
-        
-        #-- Add the Frame of reference
-        if self.show_frame:
-          cad += frame().scad_gen() 
 
         cad += "}\n"  #-- Close the multimatrix bracket
         
@@ -270,73 +270,6 @@ class rotate(part):
         
         #-- Call the super-calls scad_gen method
         return super(rotate, self).scad_gen(indent,cad)
-
-        
-class union(part):
-    """A group of parts"""
-    def __init__(self, list_parts):
-        #-- Call the parent calls constructor first
-        super(union, self).__init__()
-
-        self.lparts = list_parts
-        self.cmd = "union()"
-
-    #def __add__(self, other):
-        #-- Optimizacion: if the second argument is an
-        #-- Union too.. incorporate their childs into the
-        #-- union list
-
-        #-- Create list of child objects of the new union
-        #-- (A copy of the current union)
-        #lparts = [p for p in self.lparts]
-
-        #-- If the new object is a union, just added their childs
-        #-- (not the union itself)
-        #if other.is_union():
-            #-- Union + union
-        #    lparts.extend(other.lparts)
-        #else:
-            #-- Union + other part (not union)
-         #   lparts.extend([other])
-
-        #return union(lparts)
-
-    def scad_gen(self, indent=0):
-
-        cad = "{0} {{\n".format(self.cmd)
-        childs_cad = [part.scad_gen(indent + 2) for part in self.lparts]
-        cad = cad + "".join(childs_cad)
-        cad = cad + " " * indent + "}\n"
-        
-        #-- Call the super-calls scad_gen method
-        return super(union, self).scad_gen(indent, cad)
-
-    def is_union(self):
-        return True
-
-
-class difference(part):
-    """Difference operator"""
-    def __init__(self, list_parts):
-        #-- Call the parent calls constructor first
-        super(difference, self).__init__()
-
-        self.lparts = list_parts
-        self.cmd = "difference()"
-        
-    def id(self):
-        print "//-- {}".format(self.cmd)
-        
-    def scad_gen(self, indent=0):
-        
-
-        cad = "{0} {{\n".format(self.cmd)
-        childs_cad = [part.scad_gen(indent + 2) for part in self.lparts]
-        cad = cad + "".join(childs_cad)
-        cad = cad + " " * indent + "}\n"
-        
-        #-- Call the super-calls scad_gen method
-        return super(difference, self).scad_gen(indent,cad)
             
 
 class orientate(part):
@@ -392,26 +325,7 @@ class orientate(part):
         #-- Apply the roll and return
         return fig.rotate(a=self.roll, v=self.v)
 
-
-class minkowski(part):
-    """Minkowski operator"""
-    def __init__(self, childs):
-        #-- Call the parent calls constructor first
-        super(minkowski, self).__init__()
-
-        self.childs = childs
-        self.cmd = "minkowski()"
-
-    def scad_gen(self, indent=0):
-        
-        cad = self.cmd + "{\n"
-        childs_cad = [part.scad_gen(indent + 2) for part in self.childs]
-        cad += "".join(childs_cad)
-        cad += " " * indent + "}\n"
-        
-        #-- Call the super-calls scad_gen method
-        return super(minkowski, self).scad_gen(indent, cad)
-
 from primitive import *
 from combinational import *
+from operators import *
 
