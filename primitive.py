@@ -9,8 +9,6 @@
 #-------------------------------------------------------------
 import numpy as np
 from pyooml import *
-import copy
-import transformations as trans
 
 class primitive(part):
     """Primitive objects. Simple geometries"""

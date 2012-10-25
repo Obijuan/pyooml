@@ -3,6 +3,7 @@
 
 from pyooml import *
 from primitive import *
+from combinational import *
 import servos
 import math
 
