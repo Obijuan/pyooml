@@ -118,13 +118,17 @@ class part(object):
         
         return obj
 
-    def Move(self, pt, ot = [0., 0., 1.], ps = [0., 0., 0.], os = [0., 0., 1.], ang = 0.):
+    #def Move(self, pt, ot = [0., 0., 1.], ps = [0., 0., 0.], os = [0., 0., 1.], ang = 0.):
+    def Move(self, cs, ct):
         
-        #--- Convert the vectors into arrays
-        pt = np.array(pt)
-        ot = np.array(ot)
-        ps = np.array(ps)
-        os = np.array(os)
+        #--- Get the target and source points and orientations
+        pt = ct.p
+        ot = ct.o
+        ps = cs.p
+        os = cs.o
+        
+        #-- Angles
+        ang = ct.ang - cs.ang
         
         #-- Fist, translate the objet to the origin
         obj = self.Tras(-ps)

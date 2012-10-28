@@ -50,17 +50,7 @@ def test_grid_1():
     (c + g).show()
 
 def test_attach_1():
-    c = cube([30,20,30])
-    c.addconn([-15,0,5],[-1,0,0])
-    c.addconn([15,0,5],[1,0,0])
-
-    c2 = cube([10,50,10])
-    c2.addconn([5, 20,0],[-1,0,0])
-    c2.debug=True
-
-    c.attach(c2)
-    c.attach(c2,30)
-    c.show()
+    pass
 
 
 def test_relative_pos_1():
@@ -112,6 +102,7 @@ def test_servo_ring_1():
 def mark(p, o=[0,0,1], roll=0):
     f = frame(l=5, l_arrow=2).Orien(v=o, roll=roll).Tras(p)
     return f
+
 #--- Main ----
 
 #test_points()
@@ -128,26 +119,23 @@ def mark(p, o=[0,0,1], roll=0):
 ct = cube([20,20,20])
 #ct.debug = True
 #ct.show_frame = True
-pt = [-10,0,0]
-ot = [-1, 0, 0]
+c1 = conn(p=[-10,0,0], o=[-1, 0, 0])
+c2 = conn(p=[10, 0,0], o=[1, 0, 0])
 
-pt2 = [10,0,0]
-ot2 = [1, 0, 0]
-
-mt = mark(p=pt, o=ot)
-obt = (ct + mt)
+body = (ct + c1 + c2)
 
 cs = cube([5, 30, 10])
-ps = [-5/2., 10, 0]
-os = [1,0,0]
+d = conn(p=[-5/2., 10, 0], o=[1,0,0], ang=20)
+
 cs.debug = True
-ms = mark(p=ps, o=os)
-obs = (cs + ms)
+arm1 = (cs + d).Move(ct = c1, cs = d)
+arm2 = (cs + d).Move(ct = c2, cs = d)
 
-a = (cs + ms).Move(pt = pt, ot = ot, ps = ps, os = os, ang=30)
-b = (cs + ms).Move(pt = pt2, ot = ot2, ps = ps, os = os, ang=30)
+(arm1 + body + arm2).show()
 
-(a + b + obt).show()
+#b = (cs + ms).Move(pt = pt2, ot = ot2, ps = ps, os = os, ang=30)
+
+#(a + b + obt).show()
 
 
 

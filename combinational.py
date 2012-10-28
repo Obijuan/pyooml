@@ -162,7 +162,7 @@ class point(combinational):
         """A point"""
         
         self.p = p
-        self.diam = 2
+        self.diam = diam
         self.size=[diam, diam, diam]
         self.cmd = "point(p={0}, diam={1})".format(list(p),diam)
         
@@ -195,4 +195,23 @@ class grid(combinational):
         fig = (lx + lx.Rot(90, [0,0,1]))
         return fig.color("Gray")
 
-
+class conn(combinational):
+    """Connector for attaching parts"""
+    
+    def __init__(self, p, o = None, ang = 0.0):
+        self.p = np.array(p)
+        self.o = o
+        self.ang = float(ang)
+        self.cmd = "connector(p={0}, o={1}, ang={2})".format(p, o, ang)
+        self.size = [1,1,1]
+        #-- Call the parent calls constructor first
+        super(conn, self).__init__(self.size)
+        
+    def _geometry(self):
+        obj = point(self.p, diam=2.3).color("magenta")
+        if (self.o!=None):
+            self.o = np.array(self.o)
+            obj += frame(l=5, l_arrow=2).Orien(v=self.o, roll=self.ang).Tras(self.p)
+            
+        return obj
+    
