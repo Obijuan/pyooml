@@ -80,7 +80,7 @@ class vector(combinational):
         
         #-- The current vector is pointing in z direction
         #-- Orientate it to the v direction
-        vo = obj.orientate(self.v)
+        vo = obj.Orien(self.v)
 
         return vo
 

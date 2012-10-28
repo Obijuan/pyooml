@@ -90,11 +90,44 @@ class part(object):
         
         #-- Make a copy of the object
         obj = copy.deepcopy(self)
-        
+
         #-- Calculate the new transformation matrix
         obj.T = self.T.dot( trans.Rot(a, v) )
         
         #-- Return the NEW object
+        return obj
+        
+    def Orien(self, v, vref=[0, 0, 1], roll = 0):
+        
+        #-- Calculate the rotating axis: raxis = vref x v
+        raxis = list(np.cross(vref, v))
+
+        #-- Calculate the angle to rotate vref around rxis
+        #-- so that vref = v
+        ang = utils.anglev(vref, v)
+        
+        #-- Special case.. If ang is 0, the same object is return
+        if ang == 0.0:
+            obj = copy.deepcopy(self)
+            return obj
+        
+        #--Special case... If the rotation angle is 180...
+        #-- we should calculate a new rotation axis (because
+        #-- it will be 0,0,0, and it is not valid)
+        if ang == 180.0:
+            a,b,c = vref
+            if a != 0:
+                raxis = [-b/a, 1, 0]
+            elif b != 0:
+                raxis = [1, -a/b, 0]
+            elif c != 0:
+                raxis = [0, 1, -b/c]
+            else:
+                print "Error! Vref=(0,0,0)"
+        
+        #-- Create a new object with the given orientation
+        obj = self.Rot(roll,v).Rot(ang, raxis)
+        
         return obj
         
     def translate(self, pos):
@@ -102,9 +135,6 @@ class part(object):
 
     def rotate(self, a, v):
         return rotate(self, a, v)
-
-    def orientate(self, v, vref=[0, 0, 1], roll=0):
-        return orientate(self, v, vref, roll)
 
     #def color(self, c, alpha=1.0):
     #    return color(self, c, alpha)
@@ -150,7 +180,7 @@ class part(object):
         
         t = list(-np.array(p2))
         fig = part.translate(t)
-        fig = fig.orientate(v=o1, vref=o2)
+        fig = fig.Orien(v=o1, vref=o2)
         fig = fig.rotate(a=roll, v=o1)
         fig = fig.translate(p1)
         
@@ -272,58 +302,6 @@ class rotate(part):
         return super(rotate, self).scad_gen(indent,cad)
             
 
-class orientate(part):
-    """Orientate operator"""
-
-    def __init__(self, part, v, vref=[0, 0, 1], roll=0):
-        #-- Call the parent calls constructor first
-        super(orientate, self).__init__()
-
-        self.vref = vref
-        self.v = v
-        self.child = part
-        self.roll = roll
-        self.cmd = "orientate(vref={0},v={1}, roll={2})".format(self.vref,
-                                                     self.v,
-                                                     self.roll)
-
-        #-- Rotation axis
-        self.raxis = list(np.cross(vref, v))
-
-        #-- Angle to rotate
-        self.ang = utils.anglev(vref, v)
-        
-        #--Special case... If the rotation angle is 180...
-        #-- we should calculate a new rotation axis (because
-        #-- it will be 0,0,0, and it is not valid)
-        if self.ang == 180.0:
-            a,b,c = vref
-            if a != 0:
-                self.raxis = [-b/a, 1, 0]
-            elif b != 0:
-                self.raxis = [1, -a/b, 0]
-            elif c != 0:
-                self.raxis = [0, 1, -b/c]
-            else:
-                print "Error! Vref=(0,0,0)"
-
-        #-- Child expresion
-        self.expr = self._expr()
-
-    def scad_gen(self, indent=0):
-        
-        cad = self.expr.scad_gen(indent)
-        
-        #-- Call the super-calls scad_gen method
-        return super(orientate, self).scad_gen(indent, cad)
-
-    def _expr(self):
-
-        #-- rotate the part so that it points in the v direction
-        fig = part.rotate(self.child, a=self.ang, v=self.raxis)
-
-        #-- Apply the roll and return
-        return fig.rotate(a=self.roll, v=self.v)
 
 from primitive import *
 from combinational import *
