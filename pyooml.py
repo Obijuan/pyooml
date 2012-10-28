@@ -48,36 +48,9 @@ class part(object):
         
         self.debug = False
         self.show_frame = False
-        self.show_conns = False
-        
-        #-- List of connectors
-        self.lconns=[]
-        
-        #-- Parts connected through the conectors
-        self.conn_childs = []
-        
-        #-- Unit vectors of the local frame
-        self.uvx = np.array([1,0,0])
-        self.uvy = np.array([0,1,0])
-        self.uvz = np.array([0,0,1])
         
         #-- Object size (bounding box)
         self.size = size
-        
-        self.top = np.array([0, 0, self.size[2]/2.])
-        self.bottom = np.array([0, 0, -self.size[2]/2.])
-        
-        self.right = np.array([self.size[0]/2., 0, 0])
-        self.left = np.array([-self.size[0]/2., 0, 0])
-        
-        self.back = np.array([0,self.size[1]/2., 0])
-        self.front = np.array([0,-self.size[1]/2., 0])
-        
-        
-    def addconn(self, p, o):
-        """Add a connector to the part"""
-        conn = (list(p), list(o))
-        self.lconns.append(conn)
 
     def id(self):
         return  "//-- {}".format(self.cmd)
@@ -93,7 +66,6 @@ class part(object):
         obj.T[0,3] += vt[0]
         obj.T[1,3] += vt[1]
         obj.T[2,3] += vt[2]
-        #obj.T = self.T + trans.Tras(vt)
         
         #-- Return the NEW object
         return obj    
@@ -186,33 +158,6 @@ class part(object):
         
         #-- Return the new object
         return obj
-
-    def attach(self, part, roll=0):
-        """Attach operator"""
-        
-        #-- The attached part should have free connectors
-        if len(part.lconns) == 0:
-            print "Error! Attached Part has no free connectors!"
-            return None
-            
-        #-- The main part should also have free connectors
-        if len(self.lconns) == 0:
-            print "Error! The main part has no free connectors!"
-            return None
-        
-        #-- Retrieve the next free connectors
-        p1,o1 = self.lconns.pop(0)
-        p2,o2 = part.lconns[0]
-        
-        t = list(-np.array(p2))
-        fig = part.translate(t)
-        fig = fig.Orien(v=o1, vref=o2)
-        fig = fig.rotate(a=roll, v=o1)
-        fig = fig.translate(p1)
-        
-        self.conn_childs.append(fig)
-        
-        return self
 
     # overload +
     def __add__(self, other):
