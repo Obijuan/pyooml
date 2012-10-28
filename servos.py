@@ -1,4 +1,4 @@
-import pyooml as oom
+from pyooml import *
 import numpy as np
 
 #-- for accesing the X,Y and Z components of a vector
@@ -7,19 +7,11 @@ Y = 1
 Z = 2
 
 
-class Servo(oom.part):
+class Servo(combinational):
     """Class for using servos"""
-
-    #-- Default parameters
-    #-- Servo color
-    col = np.array([1, 1, 1]) * 0.4
-    alpha = 1.0
 
     def __init__(self):
         """NO arguments. Servo Initialization"""
-
-        #-- Call the parent calls constructor
-        super(Servo, self).__init__()
 
         #------------- Data calculated from the user parameters ----------
 
@@ -48,35 +40,51 @@ class Servo(oom.part):
         #-- For building the servo what is really used is the
         #-- distance from the servo center
         self.ear_hi_center = self.ear_hi - self.body_size[Z] / 2.
+        
+        #-- Default servo colors
+        #-- Set them if they had not alredy been set by the subclasses
+        try:
+            self.col
+        except AttributeError:     
+          #-- An empty string means the default color
+          self.col = ""
+        
+        try:
+            self.col_rgb
+        except AttributeError: 
+            self.col_rgb = [0.4, 0.4, 0.4]
 
-        #-- Build the geometry
-        self.expr = self._expr()
+        try:
+            self.alpha
+        except AttributeError:     
+            self.alpha = 1.0
+        
+        #-- Call the parent calls constructor
+        super(Servo, self).__init__()
+        
 
-    def id(self):
-        print "//-- {}".format(self.cmd)
-
-    def _expr(self):
+    def _geometry(self):
         #-- Draw the servo
 
         bsx, bsy, bsz = self.body_size
         esx, esy, esz = self.ear_size
 
-        body = oom.bcube(self.body_size,
+        body = bcube(self.body_size,
                          cr = self.body_cr,
                          cres = self.body_cres)
-        ears = oom.bcube([2 * esx + bsx, esy, esz],
+        ears = bcube([2 * esx + bsx, esy, esz],
                          cr = self.body_cr,
                          cres = self.body_cres)
 
         #-- Translate the ears to their position
         ears = ears.translate([0, 0, self.ear_hi_center] - ears.bottom)
 
-        base_shaft = oom.cylinder(r=self.shaft_base_diam / 2.,
+        base_shaft = cylinder(r=self.shaft_base_diam / 2.,
                                   h=self.shaft_base_hi,
                                   res=50)
         base_shaft = base_shaft.translate(self.shaft_base_pos - base_shaft.bottom)
 
-        shaft = oom.cylinder(r = self.shaft_diam/2., h = self.shaft_hi, res = 50)
+        shaft = cylinder(r = self.shaft_diam/2., h = self.shaft_hi, res = 50)
         shaft = shaft.translate(self.shaft_base_pos + [0, 0, self.shaft_base_hi] -
                                 shaft.bottom)
 
@@ -84,25 +92,19 @@ class Servo(oom.part):
 
         servo = shaft + body + (ears - drills) + base_shaft 
 
-        return servo.color(self.col, self.alpha)
+        return servo.color(self.col_rgb, self.alpha)
 
     def drills(self, dh):
         """Create the cylinder for making the servo drills
         dh = drill height
         """
 
-        l = [oom.cylinder(r = self.drills_diam / 2., h = dh).translate(p)
+        l = [cylinder(r = self.drills_diam / 2., h = dh).translate(p)
              for p in self.drills_pos]
 
-        obj = oom.union(l)
+        obj = union(l)
 
         return obj
-
-    def scad_gen(self, indent=0):
-
-        cad = self.expr.scad_gen(indent)
-        #-- Call the super-calls scad_gen method
-        return super(Servo, self).scad_gen(indent, cad)
 
 
 class Futaba3003(Servo):
@@ -149,7 +151,7 @@ class TowerProSG90(Servo):
 
     #------------------------ Given by the user -----------
     #-- Servo color
-    col = np.array([0, 0, 1])*1.0
+    col_rgb = [0, 0, 1.0]
     alpha = 0.9
 
     #-- Servo body size

@@ -25,15 +25,26 @@ class part(object):
         #-- It defines its position and orientation
         self.T = trans.Identity()
 
-        #-- Use the default color
-        self.col = ""
+        #-- Set the default color parameters, it they had not been
+        #-- already set by the subclases
+        try:
+            self.col
+        except AttributeError:     
+          #-- An empty string means the default color
+          self.col = ""
         
-        #-- Only if an empty string, the col_rgb
-        #-- will be used (the str format has priority over rgb)
-        self.col_rgb = [2, 2, 2]  #--- [2,2,2] means default color
+        try:
+            self.col_rgb
+        except AttributeError: 
+            #-- Only if an empty string, the col_rgb
+            #-- will be used (the str format has priority over rgb)
+            self.col_rgb = [2, 2, 2]  #--- [2,2,2] means default color
         
-        #-- Object alpha channel
-        self.alpha = 1.0
+        try:
+            self.alpha
+        except AttributeError:     
+            #-- Object alpha channel
+            self.alpha = 1.0
         
         self.debug = False
         self.show_frame = False

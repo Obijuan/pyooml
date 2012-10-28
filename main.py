@@ -90,7 +90,7 @@ def servo_ring(servo):
     
     obj = bcube([sx + 2*thick_xy + 2*tolerance, sy + thick_xy + 2*tolerance, thick_z])
     
-    return (obj - cutout - servo.drills(dh=10)).translate([0,0,-thick_z/2 + servo.ear_hi_center])
+    return (obj - cutout - servo.drills(dh=10)).Tras([0,0,-thick_z/2 + servo.ear_hi_center])
 
 def test_servo_ring_1():
     
@@ -122,14 +122,13 @@ u2 = u + a
 #test_attach_1()
 #test_relative_pos_1()
 #test_difference_1()
-#test_servo_ring_1()
+test_servo_ring_1()
 
 #s1 = servos.Futaba3003()
 #s.debug=True
 #s2 = servos.TowerProSG90()
 #(s.translate([0, 50, 0]) + s2).show()
 
-c = cube([10,10,10])
 
 
 """
