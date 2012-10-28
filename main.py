@@ -109,6 +109,9 @@ def test_servo_ring_1():
 
     (obj1 + obj2).show()
 
+def mark(p, o=[0,0,1], roll=0):
+    f = frame(l=5, l_arrow=2).Orien(v=o, roll=roll).Tras(p)
+    return f
 #--- Main ----
 
 #test_points()
@@ -117,10 +120,48 @@ def test_servo_ring_1():
 #test_grid_1()
 #test_relative_pos_1()
 #test_difference_1()
-test_servo_ring_1()
+#test_servo_ring_1()
 
 
 #test_attach_1()
+
+ct = cube([20,20,20])
+#ct.debug = True
+#ct.show_frame = True
+pt = [-10,0,0]
+ot = [-1, 0, 0]
+
+pt2 = [10,0,0]
+ot2 = [1, 0, 0]
+
+mt = mark(p=pt, o=ot)
+obt = (ct + mt)
+
+cs = cube([5, 30, 10])
+ps = [-5/2., 10, 0]
+os = [1,0,0]
+cs.debug = True
+ms = mark(p=ps, o=os)
+obs = (cs + ms)
+
+a = (cs + ms).Move(pt = pt, ot = ot, ps = ps, os = os, ang=30)
+b = (cs + ms).Move(pt = pt2, ot = ot2, ps = ps, os = os, ang=30)
+
+(a + b + obt).show()
+
+
+
+#mt = vector(ot).Tras(pt)
+#ms = vector(os).Tras(ps)
+
+#(body + mt).show()
+
+#(body + c.Move(pt = pt, ot = ot, ps = ps, os = os) + ms + mt).show()
+
+
+
+#(body + point(pt).color("magenta")).show()
+
 
 #s1 = servos.Futaba3003()
 #s1.debug=True

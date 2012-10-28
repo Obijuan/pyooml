@@ -84,31 +84,35 @@ class part(object):
 
     def Tras(self, vt):
         """Translate function. It returns the same object
-        but translated a vetor vt"""
+        but translated a vetor vt (ABSOLUTE TRANSLATION)"""
         
         #-- Make a copy of the object
         obj = copy.deepcopy(self)
         
         #-- Calculate the new transformation matrix
-        obj.T = self.T.dot( trans.Tras(vt) )
+        obj.T[0,3] += vt[0]
+        obj.T[1,3] += vt[1]
+        obj.T[2,3] += vt[2]
+        #obj.T = self.T + trans.Tras(vt)
         
         #-- Return the NEW object
         return obj    
 
     def Rot(self, a, v):
         """Rotate function. It returns the same object
-        but Rotated an angle a around the axis given by v"""
+        but Rotated an angle a around the axis given by v
+        (ABSOLUTE ROTATION)"""
         
         #-- Make a copy of the object
         obj = copy.deepcopy(self)
 
         #-- Calculate the new transformation matrix
-        obj.T = self.T.dot( trans.Rot(a, v) )
+        obj.T = trans.Rot(a,v).dot(self.T)
         
         #-- Return the NEW object
         return obj
         
-    def Orien(self, v, vref=[0, 0, 1], roll = 0):
+    def Orien(self, v, vref=[0., 0., 1.], roll = 0.):
         
         #-- Calculate the rotating axis: raxis = vref x v
         raxis = list(np.cross(vref, v))
@@ -117,30 +121,50 @@ class part(object):
         #-- so that vref = v
         ang = utils.anglev(vref, v)
         
-        #-- Special case.. If ang is 0, the same object is return
+        #-- Special case.. If ang is 0 is because vref and v are paralell
+        #-- Only the roll angle have to be applied
+        #-- Give raxis a random value (it should be != [0,0,0]
         if ang == 0.0:
-            obj = copy.deepcopy(self)
-            return obj
+            raxis = [0,0,1]
         
         #--Special case... If the rotation angle is 180...
         #-- we should calculate a new rotation axis (because
         #-- it will be 0,0,0, and it is not valid)
         if ang == 180.0:
             a,b,c = vref
-            if a != 0:
-                raxis = [-b/a, 1, 0]
-            elif b != 0:
-                raxis = [1, -a/b, 0]
-            elif c != 0:
-                raxis = [0, 1, -b/c]
+            if a != 0.:
+                raxis = [-b/a, 1., 0.]
+            elif b != 0.:
+                raxis = [1., -a/b, 0.]
+            elif c != 0.:
+                raxis = [0., 1., -b/c]
             else:
                 print "Error! Vref=(0,0,0)"
         
         #-- Create a new object with the given orientation
-        obj = self.Rot(roll,v).Rot(ang, raxis)
+        obj = self.Rot(ang, raxis).Rot(roll,v)
         
         return obj
-    
+
+    def Move(self, pt, ot = [0., 0., 1.], ps = [0., 0., 0.], os = [0., 0., 1.], ang = 0.):
+        
+        #--- Convert the vectors into arrays
+        pt = np.array(pt)
+        ot = np.array(ot)
+        ps = np.array(ps)
+        os = np.array(os)
+        
+        #-- Fist, translate the objet to the origin
+        obj = self.Tras(-ps)
+        
+        #--- Set the new object orientation
+        obj = obj.Orien(v=ot, vref = os, roll = ang)
+        
+        #-- Translate the object to the target position
+        obj = obj.Tras(pt)
+        
+        return obj
+        
     def color(self, c, alpha = 1.0):
         """Create a copy of the object in a different color"""
         
