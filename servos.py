@@ -77,18 +77,18 @@ class Servo(combinational):
                          cres = self.body_cres)
 
         #-- Translate the ears to their position
-        ears = ears.translate([0, 0, self.ear_hi_center] - ears.bottom)
+        ears = ears.Tras([0, 0, self.ear_hi_center] - ears.bottom)
 
         base_shaft = cylinder(r=self.shaft_base_diam / 2.,
                                   h=self.shaft_base_hi,
                                   res=50)
-        base_shaft = base_shaft.translate(self.shaft_base_pos - base_shaft.bottom)
+        base_shaft = base_shaft.Tras(self.shaft_base_pos - base_shaft.bottom)
 
         shaft = cylinder(r = self.shaft_diam/2., h = self.shaft_hi, res = 50)
-        shaft = shaft.translate(self.shaft_base_pos + [0, 0, self.shaft_base_hi] -
+        shaft = shaft.Tras(self.shaft_base_pos + [0, 0, self.shaft_base_hi] -
                                 shaft.bottom)
 
-        drills = self.drills(dh=self.ear_size[Z]+1).translate([0,0,self.ear_hi_center+self.ear_size[Z]/2.])
+        drills = self.drills(dh=self.ear_size[Z]+1).Tras([0,0,self.ear_hi_center+self.ear_size[Z]/2.])
 
         servo = shaft + body + (ears - drills) + base_shaft 
 
@@ -99,7 +99,7 @@ class Servo(combinational):
         dh = drill height
         """
 
-        l = [cylinder(r = self.drills_diam / 2., h = dh).translate(p)
+        l = [cylinder(r = self.drills_diam / 2., h = dh).Tras(p)
              for p in self.drills_pos]
 
         obj = union(l)

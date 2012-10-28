@@ -140,15 +140,6 @@ class part(object):
         obj = self.Rot(roll,v).Rot(ang, raxis)
         
         return obj
-        
-    def translate(self, pos):
-        return translate(self, pos)
-
-    def rotate(self, a, v):
-        return rotate(self, a, v)
-
-    #def color(self, c, alpha=1.0):
-    #    return color(self, c, alpha)
     
     def color(self, c, alpha = 1.0):
         """Create a copy of the object in a different color"""
@@ -275,43 +266,6 @@ class part(object):
         f.write(code)
 
         f.close()
-
-
-class translate(part):
-    """A translated part"""
-    def __init__(self, part, pos):
-        #-- Call the parent calls constructor first
-        super(translate, self).__init__()
-
-        self.pos = pos
-        self.child = part
-        self.cmd = "translate({})".format(list(self.pos))
-
-    def scad_gen(self, indent=0):
-
-        cad = "{} {{\n".format(self.cmd) + self.child.scad_gen(indent + 2) + "}"
-        #-- Call the super-calls scad_gen method
-        return super(translate, self).scad_gen(indent,cad)
-
-
-class rotate(part):
-    """A rotated part"""
-    def __init__(self, part, a, axis):
-        #-- Call the parent calls constructor first
-        super(rotate, self).__init__()
-
-        self.ang = a
-        self.axis = axis
-        self.child = part
-        self.cmd = "rotate(a={0}, v={1})".format(self.ang, self.axis)
-
-    def scad_gen(self, indent=0):
-
-        cad = "{} {{\n".format(self.cmd) + '\n' + self.child.scad_gen(indent + 2) + "}"
-        
-        #-- Call the super-calls scad_gen method
-        return super(rotate, self).scad_gen(indent,cad)
-            
 
 
 from primitive import *

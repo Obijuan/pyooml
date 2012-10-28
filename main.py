@@ -12,7 +12,8 @@ def test_points():
     N=50  #-- Number of points
     
     #-- Get a list of points
-    l = [point([x, 20 * math.sin(2 * math.pi * x / float(N)), 0]) for x in range(-N, N)]
+    l = [point([x, 20 * math.sin(2 * math.pi * x / float(N)), 0])
+         for x in range(-N, N)]
     
     #-- Join al the points with a union
     fig = union(l)
@@ -103,43 +104,26 @@ def test_servo_ring_1():
     sr2 = servo_ring(s2)
 
     #-- Show the objetcs (servos + rings)
-    obj1 = (sr1 + s1).translate([0, 30, s1.body_size[2]/2.])
-    obj2 = (sr2 + s2).translate([0, -30, s2.body_size[2]/2.0])
+    obj1 = (sr1 + s1).Tras([0, 30, s1.body_size[2]/2.])
+    obj2 = (sr2 + s2).Tras([0, -30, s2.body_size[2]/2.0])
 
     (obj1 + obj2).show()
 
 #--- Main ----
-a = cube([50,10,10])
-b = cube([10,50,10])
-u =  a + b
-u2 = u + a
-#u2.show()
 
 #test_points()
 #test_connector_1()
 #test_frame_1()
 #test_grid_1()
-#test_attach_1()
 #test_relative_pos_1()
 #test_difference_1()
 test_servo_ring_1()
 
+
+#test_attach_1()
+
 #s1 = servos.Futaba3003()
-#s.debug=True
+#s1.debug=True
 #s2 = servos.TowerProSG90()
-#(s.translate([0, 50, 0]) + s2).show()
+#(s1.Tras([0, 50, 0]) + s2).show()
 
-
-
-"""
-a = cube([10,10,10]).translate([10,0,0])
-b = cube([10,10,10])
-#t = translate(a, [10,0,0])
-#a.id()
-u = union([a,b]).translate([20,0,0])
-c = (b+b+b+b+b+b+b+b) + (b+b)
-
-c = (cube([50,10,10]) + cube([10,50,10]) + cube([10,10,40])).translate([0,0,10])
-
-c.render()
-"""
